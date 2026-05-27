@@ -14,7 +14,9 @@ function enviarEvento(res, tipo, dados, id){
     res.write(`data: ${JSON.stringfy(dados)}\n\n`);
 }
 
-function getHardwareInfo
+function getHardwareInfo(){
+    console.log('cpu info')
+}
 
 app.get('/events', (req, res) => { 
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5002');
