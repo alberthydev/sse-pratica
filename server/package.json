@@ -9,12 +9,5 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "express": "^5.2.1",
-    "systeminformation": "^5.31.6"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
-  }
+  "type": "commonjs"
 }
