@@ -2,7 +2,6 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-// Dados iniciais das ações
 let stocks = [
     { ticker: 'AAPL', name: 'Apple Inc.', price: 175.50 },
     { ticker: 'MSFT', name: 'Microsoft Corp.', price: 420.20 },
@@ -11,7 +10,6 @@ let stocks = [
 ];
 
 const server = http.createServer((req, res) => {
-    // Rota do Front-end
     if (req.url === '/' || req.url === '/index.html') {
         fs.readFile(path.join(__dirname, 'index.html'), (err, data) => {
             if (err) {
@@ -22,7 +20,7 @@ const server = http.createServer((req, res) => {
             res.end(data);
         });
     } 
-    // Rota do Stream SSE
+
     else if (req.url === '/stream') {
         res.writeHead(200, {
             'Content-Type': 'text/event-stream',
@@ -31,10 +29,8 @@ const server = http.createServer((req, res) => {
             'Access-Control-Allow-Origin': '*'
         });
 
-        // Envia o estado inicial imediatamente
         res.write(`data: ${JSON.stringify(stocks)}\n\n`);
 
-        // Atualiza os preços randomicamente a cada 1.5 segundos
         const intervalId = setInterval(() => {
             stocks = stocks.map(stock => {
                 // Variação entre -1.5% e +1.5%
@@ -47,11 +43,9 @@ const server = http.createServer((req, res) => {
                 };
             });
 
-            // O protocolo SSE exige o formato "data: [MENSAGEM]\n\n"
             res.write(`data: ${JSON.stringify(stocks)}\n\n`);
         }, 1500);
 
-        // Limpa o intervalo se o cliente fechar a conexão
         req.on('close', () => {
             clearInterval(intervalId);
             res.end();
