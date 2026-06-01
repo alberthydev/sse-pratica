@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markets</title>
+    <style>
+        :root {
+            /* Paleta inspirada na imagem (Branco, Cinza e Azul) */
+            --bg: #ffffff;
+            --card-bg: #f8f9fa;
+            --card-border: #e9ecef;
+            --text: #212529;
+            --text-secondary: #6c757d;
+            --accent-blue: #0066cc; /* Azul clássico de links e destaque do material */
+            --up: #2b8a3e;
+            --down: #c92a2a;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 24px;
+        }
+
+        header {
+            margin-bottom: 28px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 16px;
+        }
+
+        header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin: 0;
+            color: #111111;
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            color: var(--accent-blue); /* Destaque sutil em azul para o status */
+            font-size: 13px;
+            margin: 6px 0 0 0;
+            font-weight: 500;
+        }
+
+        .market-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .stock-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .stock-card:hover {
+            background-color: #f1f3f5;
+        }
+
+        .stock-info .ticker {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .stock-info .name {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 1px;
+        }
+
+        .stock-price {
+            text-align: right;
+            font-size: 16px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            transition: color 0.15s ease;
+        }
+
+        /* Classes de feedback visual sutil para mudança de preço */
+        .price-up { color: var(--up); }
+        .price-down { color: var(--down); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Mercado Financeiro</h1>
+            <p id="status">Conectando ao servidor SSE...</p>
+        </header>
+
+        <div id="markets" class="market-list">
+            </div>
+    </div>
+
+    <script>
+        const marketsContainer = document.getElementById('markets');
+        const statusText = document.getElementById('status');
+
+        const evtSource = new EventSource('/stream');
+
+        evtSource.onopen = () => {
+            statusText.textContent = '● Transmissão em tempo real';
+            statusText.style.color = 'var(--accent-blue)';
+        };
+
+        evtSource.onmessage = (event) => {
+            const stocks = JSON.parse(event.data);
+            
+            marketsContainer.innerHTML = stocks.map(stock => {
+                let changeClass = '';
+                if (stock.change === 'up') changeClass = 'price-up';
+                if (stock.change === 'down') changeClass = 'price-down';
+
+                return `
+                    <div class="stock-card" id="card-${stock.ticker}">
+                        <div class="stock-info">
+                            <div class="ticker">${stock.ticker}</div>
+                            <div class="name">${stock.name}</div>
+                        </div>
+                        <div class="stock-price ${changeClass}">
+                            $${stock.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Remove a cor após 500ms para voltar ao tom neutro/sóbrio do site
+            setTimeout(() => {
+                document.querySelectorAll('.stock-price').forEach(el => {
+                    el.classList.remove('price-up', 'price-down');
+                });
+            }, 500);
+        };
+
+        evtSource.onerror = () => {
+            statusText.textContent = 'Conexão interrompida. Tentando reconectar...';
+            statusText.style.color = 'var(--down)';
+        };
+    </script>
+</body>
+</html>
